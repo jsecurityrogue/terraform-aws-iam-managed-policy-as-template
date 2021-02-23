@@ -11,7 +11,7 @@ variable "override_policy_sid" {
 variable "override_policy_effect" {
  type = string
  description = "Statement Effect value to override.  Defaults to ALLOW."
- default = "ALLOW"
+ default = "Allow"
 }
 
 variable "override_policy_actions" {
