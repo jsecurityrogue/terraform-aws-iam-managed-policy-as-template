@@ -18,7 +18,7 @@ Example Invocation to override SID "0" in AWS managed Policy arn:aws:iam::aws:po
 	       "kms:*"
 	    ]
 	override_policy_resources = ["*"]
-  override_policy_conditions = [
+        override_policy_conditions = [
             {
                test = "StringLike",
                variable = "iam:AWSServiceName",
