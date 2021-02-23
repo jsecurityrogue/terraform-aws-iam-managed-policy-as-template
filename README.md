@@ -7,9 +7,10 @@ Example Invocation to override SID "0" in AWS managed Policy arn:aws:iam::aws:po
 ------------
 
 ```module "iam_merge_poweruser_access" {
-    source = "https://github.com/jsecurityrogue/terraform-aws-iam-managed-policy-as-template.git"
+    source = "github.com/jsecurityrogue/terraform-aws-iam-managed-policy-as-template"
     override_policy_source = "arn:aws:iam::aws:policy/PowerUserAccess"
 	  override_policy_sid = "0"
+	  override_policy_effect = "Allow"
 	  override_policy_notactions = [
 	       "iam:*",
 	       "organizations:*",
