@@ -8,15 +8,21 @@ variable "override_policy_sid" {
  description = "SID value to override.  If you specify unmatched SID, block will be inserted as new block"
 }
 
+variable "override_policy_effect" {
+ type = string
+ description = "Statement Effect value to override.  Defaults to ALLOW."
+ default = "ALLOW"
+}
+
 variable "override_policy_actions" {
  type = list(string)
- description = "List of Actions to override in selected SID"
+ description = "List of Actions to override in selected SID.  Use only override_policy_actions or override_policy_notactions."
  default = null
 }
 
 variable "override_policy_notactions" {
  type = list(string)
- description = "List of NotActions to override in selected SID"
+ description = "List of NotActions to override in selected SID.  Use only override_policy_actions or override_policy_notactions."
  default = null
 }
 
@@ -32,6 +38,6 @@ variable "override_policy_conditions" {
                  values=list(string)
               })
           )
-  description = "Policy Conditions to include in the override block"
+  description = "Policy Conditions to include in the override block.  Default is no Conditions required."
   default = []
 }
