@@ -6,7 +6,7 @@ or merge in statement as additional statement, and output a merged policy JSON a
 Example Invocation to override SID "0" in AWS managed Policy arn:aws:iam::aws:policy/PowerUserAccess
 ------------
 
-module "iam_merge_poweruser_access" {
+```module "iam_merge_poweruser_access" {
 	source = "./modules/aws_managed_policy"
     override_policy_source = "arn:aws:iam::aws:policy/PowerUserAccess"
 	  override_policy_sid = "0"
@@ -31,3 +31,4 @@ module "iam_merge_poweruser_access" {
             }
          ]
 }
+```
