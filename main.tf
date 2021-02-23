@@ -52,9 +52,11 @@ data "aws_iam_policy_document" "override_source" {
   
   statement {
     sid = var.override_policy_sid
+    effect = var.override_policy_effect
     not_actions = var.override_policy_notactions == "" ? null : var.override_policy_notactions
     actions = var.override_policy_actions == "" ? null : var.override_policy_actions
     resources = var.override_policy_resources
+
     dynamic "condition" {
        for_each = var.override_policy_conditions
 	    
