@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "source_plus_sid" {
 }
 
 data "aws_iam_policy_document" "override_source" {
-  source_json = data.aws_iam_policy_document.source_plus_sid.json
+  source_policy_documents = [data.aws_iam_policy_document.source_plus_sid.json]
   
   statement {
     sid = var.override_policy_sid
