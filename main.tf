@@ -55,6 +55,18 @@ locals {
   )
 
   # ---------------------------------------------------------------------------
+  # Hard fail at plan time if the live policy version does not match the
+  # approved version. Only evaluated when approved_policy_version is set —
+  # null skips the check entirely, preserving auto-inherit behavior.
+  # ---------------------------------------------------------------------------
+  version_gate = (
+    var.approved_policy_version == null ||
+    var.approved_policy_version == data.aws_iam_policy.source.default_version_id
+  ) ? true : tobool(
+    "ERROR: ${var.override_policy_source} has been updated by AWS to version ${data.aws_iam_policy.source.default_version_id}. Approved version is ${var.approved_policy_version}. Review the policy changes, confirm the override still meets governance requirements, then update approved_policy_version to ${data.aws_iam_policy.source.default_version_id} to unblock the plan."
+  )
+
+  # ---------------------------------------------------------------------------
   # Reshape each source statement into a known structure for dynamic block use.
   # Handles:
   #   - Missing Sid (falls back to matched override SID or position index)
@@ -68,7 +80,7 @@ locals {
   # ---------------------------------------------------------------------------
   statements = flatten([
     for idx, statement in local.source_policy_decoded.Statement : {
-      Sid    = lookup(statement, "Sid",
+      Sid = lookup(statement, "Sid",
         idx == local.matched_index ? var.override_policy_sid : tostring(idx)
       )
       Effect    = statement.Effect
@@ -86,23 +98,38 @@ locals {
       ])
     }
   ])
+
+  # ---------------------------------------------------------------------------
+  # Index the statements as a map keyed by Sid for for_each compatibility.
+  # for_each on a dynamic block requires a map or set — tuples and lists are
+  # not accepted. Keying by Sid also makes plan output more readable since
+  # Terraform uses the key as the resource address.
+  # ---------------------------------------------------------------------------
+  statements_map = {
+    for idx, s in local.statements : s.Sid => s
+  }
 }
 
 # ---------------------------------------------------------------------------
 # Intermediate step: reconstruct the fetched managed policy in HCL so
 # Terraform can consume it as a source_policy_document. Required because
 # aws_iam_policy_document does not accept raw JSON as a source directly.
+#
+# match_guard and version_gate are referenced inside the content block so
+# Terraform evaluates them during planning — either will tobool-error before
+# any statements are rendered if their checks fail.
 # ---------------------------------------------------------------------------
 data "aws_iam_policy_document" "source_normalized" {
-  # Ensure match_guard is evaluated before rendering — causes plan-time error
-  # if override_statement_match was provided but not found in the source policy
-  depends_on = []
-
   dynamic "statement" {
-    for_each = local.match_guard == true ? local.statements : []
+    for_each = local.statements_map
 
     content {
-      sid       = statement.value["Sid"]
+      # Referencing both guards inside content forces their evaluation.
+      # If either guard fires, tobool() errors the plan before apply.
+      sid = (local.match_guard == true && local.version_gate == true
+        ? statement.value["Sid"]
+        : statement.value["Sid"]
+      )
       effect    = statement.value["Effect"]
       resources = statement.value["Resource"]
 

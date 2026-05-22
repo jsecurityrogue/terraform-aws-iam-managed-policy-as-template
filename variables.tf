@@ -51,6 +51,33 @@ variable "override_policy_conditions" {
   default     = []
 }
 
+variable "approved_policy_version" {
+  type        = string
+  description = <<-EOT
+    Optional. The AWS policy version ID (e.g. "v10") that this override has
+    been reviewed and approved against. When provided, Terraform will error at
+    plan time if the live managed policy version differs — indicating AWS has
+    published an update that requires operator review before re-running.
+
+    When null (default), version checking is skipped and the module always
+    consumes the current live version of the managed policy. This preserves
+    the auto-inherit behavior where new AWS service actions added to the
+    managed policy are picked up automatically.
+
+    The current live version ID is always available in the source_policy_version
+    output. After reviewing an AWS policy update and confirming the override
+    still meets governance requirements, update this value to the new version ID
+    to unblock the plan.
+
+    To find the current version ID:
+      aws iam get-policy \
+        --policy-arn arn:aws:iam::aws:policy/PowerUserAccess \
+        --query 'Policy.DefaultVersionId' \
+        --output text
+  EOT
+  default     = null
+}
+
 variable "override_statement_match" {
   description = <<-EOT
     Optional. A single IAM policy statement object as a JSON string, copied
