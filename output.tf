@@ -9,7 +9,7 @@ output "source_policy_name" {
 }
 
 output "source_policy_version" {
-  value       = data.aws_iam_policy.source.default_version_id
+  value       = data.awscc_iam_managed_policy.source_meta.default_version_id 
   description = <<-EOT
     Current default version ID of the source managed policy (e.g. "v10").
     Use this as the value for approved_policy_version to enable the version
