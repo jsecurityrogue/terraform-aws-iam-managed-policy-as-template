@@ -10,7 +10,21 @@ output "source_policy_name" {
 
 output "source_policy_version" {
   value       = data.aws_iam_policy.source.default_version_id
-  description = "Default version ID of the original AWS managed policy. Use this to detect if AWS has updated the managed policy since last apply."
+  description = <<-EOT
+    Current default version ID of the source managed policy (e.g. "v10").
+    Use this as the value for approved_policy_version to enable the version
+    gate. If AWS publishes an update the version ID will increment, causing
+    version_gate to error at plan time until approved_policy_version is
+    updated to the new version ID after operator review.
+  EOT
+}
+
+output "source_policy_update_date" {
+  # update_date is documented as optional in the awscc schema — use try()
+  # so the output degrades gracefully to null rather than erroring if the
+  # attribute is absent for a given policy.
+  value       = try(data.awscc_iam_managed_policy.source_meta.update_date, null)
+  description = "Timestamp of the last AWS update to the source managed policy. Null if not available for this policy. Useful context when reviewing whether a version change requires governance re-review."
 }
 
 output "source_policy_json" {

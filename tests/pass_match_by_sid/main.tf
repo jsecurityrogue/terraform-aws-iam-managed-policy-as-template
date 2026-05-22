@@ -5,10 +5,18 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    awscc = {
+      source  = "hashicorp/awscc"
+      version = "~> 1.85"
+    }
   }
 }
 
 provider "aws" {
+  region = "us-east-1"
+}
+
+provider "awscc" {
   region = "us-east-1"
 }
 
@@ -26,6 +34,10 @@ module "policy" {
   approved_policy_version    = var.approved_policy_version
 }
 
+# ---------------------------------------------------------------------------
+# Source policy outputs — preserved so operators and CI logs can see exactly
+# what the original managed policy contained before any overrides were applied
+# ---------------------------------------------------------------------------
 output "source_policy_arn" {
   value = module.policy.source_policy_arn
 }
@@ -35,14 +47,22 @@ output "source_policy_name" {
 }
 
 output "source_policy_version" {
-  description = "Use this to detect if AWS has updated the managed policy since last apply."
+  description = "Current version ID — use as approved_policy_version to enable version gate."
   value       = module.policy.source_policy_version
+}
+
+output "source_policy_update_date" {
+  description = "Timestamp of last AWS update to the source managed policy. Null if not available."
+  value       = module.policy.source_policy_update_date
 }
 
 output "source_policy_json" {
   value = module.policy.source_policy_json
 }
 
+# ---------------------------------------------------------------------------
+# Merged policy outputs
+# ---------------------------------------------------------------------------
 output "merged_policy" {
   value = module.policy.merged_policy
 }

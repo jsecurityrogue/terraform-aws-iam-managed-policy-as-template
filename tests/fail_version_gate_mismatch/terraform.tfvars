@@ -13,9 +13,11 @@
 #   - No changes applied — existing policy assignment remains intact
 #
 # NOTE: "v1" is used as the approved version because PowerUserAccess has been
-# updated many times and v1 is guaranteed to never be the current live version.
-# The actual current version will appear in the error message, which can then
-# be used to update approved_policy_version after operator review.
+# many times and v1 is guaranteed never to be the current live version.
+# The actual current version ID will appear in the error message output,
+# which can then be set as approved_policy_version after operator review.
+
+
 
 override_policy_source = "arn:aws:iam::aws:policy/PowerUserAccess"
 override_policy_sid    = "PowerUserAccessOverride"

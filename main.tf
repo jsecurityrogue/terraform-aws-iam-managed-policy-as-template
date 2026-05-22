@@ -5,14 +5,27 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    awscc = {
+      source  = "hashicorp/awscc"
+      version = "~> 1.85"
+    }
   }
 }
 
 # ---------------------------------------------------------------------------
-# Fetch the source AWS managed policy by ARN
+# Fetch the source AWS managed policy content (JSON) via the aws provider
 # ---------------------------------------------------------------------------
 data "aws_iam_policy" "source" {
   arn = var.override_policy_source
+}
+
+# ---------------------------------------------------------------------------
+# Fetch the source AWS managed policy metadata via the awscc provider.
+# The awscc data source exposes default_version_id and update_date which
+# are not available on the aws provider's aws_iam_policy data source.
+# ---------------------------------------------------------------------------
+data "awscc_iam_managed_policy" "source_meta" {
+  id = var.override_policy_source
 }
 
 locals {
@@ -56,14 +69,16 @@ locals {
 
   # ---------------------------------------------------------------------------
   # Hard fail at plan time if the live policy version does not match the
-  # approved version. Only evaluated when approved_policy_version is set —
-  # null skips the check entirely, preserving auto-inherit behavior.
+  # approved version. Uses default_version_id from the awscc provider which
+  # exposes the IAM version string (e.g. "v10") directly.
+  # Only evaluated when approved_policy_version is set — null skips the check
+  # entirely, preserving auto-inherit behavior.
   # ---------------------------------------------------------------------------
   version_gate = (
     var.approved_policy_version == null ||
-    var.approved_policy_version == data.aws_iam_policy.source.default_version_id
+    var.approved_policy_version == data.awscc_iam_managed_policy.source_meta.default_version_id
   ) ? true : tobool(
-    "ERROR: ${var.override_policy_source} has been updated by AWS to version ${data.aws_iam_policy.source.default_version_id}. Approved version is ${var.approved_policy_version}. Review the policy changes, confirm the override still meets governance requirements, then update approved_policy_version to ${data.aws_iam_policy.source.default_version_id} to unblock the plan."
+    "ERROR: ${var.override_policy_source} has been updated by AWS to version ${data.awscc_iam_managed_policy.source_meta.default_version_id}${try(" (${data.awscc_iam_managed_policy.source_meta.update_date})", "")}. Approved version is ${var.approved_policy_version}. Review the policy changes, confirm the override still meets governance requirements, then update approved_policy_version to ${data.awscc_iam_managed_policy.source_meta.default_version_id} to unblock the plan."
   )
 
   # ---------------------------------------------------------------------------
