@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 1.5.7"
+  required_version = ">= 1.5.7, < 2.0.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -34,10 +34,6 @@ module "policy" {
   approved_policy_version    = var.approved_policy_version
 }
 
-# ---------------------------------------------------------------------------
-# Source policy outputs — preserved so operators and CI logs can see exactly
-# what the original managed policy contained before any overrides were applied
-# ---------------------------------------------------------------------------
 output "source_policy_arn" {
   value = module.policy.source_policy_arn
 }
@@ -60,11 +56,16 @@ output "source_policy_json" {
   value = module.policy.source_policy_json
 }
 
-# ---------------------------------------------------------------------------
-# Merged policy outputs
-# ---------------------------------------------------------------------------
 output "merged_policy" {
   value = module.policy.merged_policy
+}
+
+output "override_mode" {
+  value = module.policy.override_mode
+}
+
+output "matched_statement_sid" {
+  value = module.policy.matched_statement_sid
 }
 
 output "merged_policy_parsed" {

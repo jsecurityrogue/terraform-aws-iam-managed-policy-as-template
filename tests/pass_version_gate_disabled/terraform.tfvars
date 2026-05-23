@@ -11,7 +11,7 @@
 #   - No version mismatch error regardless of what AWS version is live
 
 override_policy_source = "arn:aws:iam::aws:policy/PowerUserAccess"
-override_policy_sid    = "PowerUserAccessOverride"
+override_policy_sid    = "0"
 override_policy_effect = "Allow"
 
 override_policy_notactions = [

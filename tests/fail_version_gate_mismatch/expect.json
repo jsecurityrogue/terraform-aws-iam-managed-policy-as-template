@@ -1,0 +1,6 @@
+{
+  "expect": "fail",
+  "error_contains": [
+    "has been updated by AWS to version"
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "action": "s3:ListAllMyBuckets",
+    "resource_arns": ["*"],
+    "context": [
+      {
+        "key": "aws:MultiFactorAuthPresent",
+        "type": "boolean",
+        "values": ["true"]
+      }
+    ],
+    "expected": "allowed"
+  },
+  {
+    "action": "iam:CreateUser",
+    "resource_arns": ["*"],
+    "context": [
+      {
+        "key": "aws:MultiFactorAuthPresent",
+        "type": "boolean",
+        "values": ["true"]
+      }
+    ],
+    "expected": "implicitDeny"
+  },
+  {
+    "action": "sts:AssumeRole",
+    "resource_arns": ["*"],
+    "context": [
+      {
+        "key": "aws:MultiFactorAuthPresent",
+        "type": "boolean",
+        "values": ["true"]
+      }
+    ],
+    "expected": "implicitDeny"
+  }
+]

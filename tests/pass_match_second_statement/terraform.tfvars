@@ -22,7 +22,7 @@ override_policy_actions = [
   "iam:ListRoles"
 ]
 
-override_policy_resources = ["*"]
+override_policy_resources  = ["*"]
 override_policy_conditions = []
 
 # Copied exactly from PowerUserAccess Statement[1].

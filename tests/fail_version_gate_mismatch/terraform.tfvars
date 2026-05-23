@@ -19,9 +19,9 @@
 
 
 
-override_policy_source = "arn:aws:iam::aws:policy/PowerUserAccess"
-override_policy_sid    = "PowerUserAccessOverride"
-override_policy_effect = "Allow"
+override_policy_source     = "arn:aws:iam::aws:policy/PowerUserAccess"
+override_policy_sid        = "PowerUserAccessOverride"
+override_policy_effect     = "Allow"
 override_policy_resources  = ["*"]
 override_policy_notactions = ["iam:*"]
 override_policy_conditions = []

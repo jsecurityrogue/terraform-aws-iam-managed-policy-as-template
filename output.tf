@@ -9,7 +9,7 @@ output "source_policy_name" {
 }
 
 output "source_policy_version" {
-  value       = data.awscc_iam_managed_policy.source_meta.default_version_id 
+  value       = data.awscc_iam_managed_policy.source_meta.default_version_id
   description = <<-EOT
     Current default version ID of the source managed policy (e.g. "v10").
     Use this as the value for approved_policy_version to enable the version
@@ -35,4 +35,14 @@ output "source_policy_json" {
 output "merged_policy" {
   value       = data.aws_iam_policy_document.override_source.json
   description = "The merged IAM policy JSON with the override statement applied."
+}
+
+output "override_mode" {
+  value       = local.override_mode
+  description = "How the override statement was applied: content_match (override_statement_match), sid_match (SID collision), or append (new statement)."
+}
+
+output "matched_statement_sid" {
+  value       = local.matched_statement_sid
+  description = "Sid of the source statement that was replaced, or null when the override was appended as a new statement."
 }

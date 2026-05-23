@@ -2,3 +2,7 @@
 .terraform
 .tfstate
 .terraform.lock.hcl
+tests/**/tfplan
+tests/**/.terraform
+examples/**/.terraform
+examples/**/.terraform.lock.hcl

@@ -1,0 +1,6 @@
+{
+  "expect": "fail",
+  "error_contains": [
+    "One of override_policy_actions or override_policy_notactions must be set."
+  ]
+}

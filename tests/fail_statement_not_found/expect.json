@@ -1,0 +1,6 @@
+{
+  "expect": "fail",
+  "error_contains": [
+    "no matching statement was found"
+  ]
+}

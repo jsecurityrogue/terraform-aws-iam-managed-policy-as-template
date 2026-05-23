@@ -1,0 +1,6 @@
+{
+  "expect": "fail",
+  "error_contains": [
+    "override_statement_match must be a single JSON statement object"
+  ]
+}

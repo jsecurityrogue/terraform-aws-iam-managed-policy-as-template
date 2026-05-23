@@ -1,17 +1,3 @@
-terraform {
-  required_version = "~> 1.5.7"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    awscc = {
-      source  = "hashicorp/awscc"
-      version = "~> 1.85"
-    }
-  }
-}
-
 # ---------------------------------------------------------------------------
 # Fetch the source AWS managed policy content (JSON) via the aws provider
 # ---------------------------------------------------------------------------
@@ -59,29 +45,6 @@ locals {
   matched_index = local.match_found && var.override_statement_match != null ? index(local.normalized_source_statements, local.normalized_match) : -1
 
   # ---------------------------------------------------------------------------
-  # Hard fail at plan time if match was expected but not found.
-  # tobool() with a non-boolean string always errors, surfacing the message.
-  # No apply occurs — existing policy assignment remains intact.
-  # ---------------------------------------------------------------------------
-  match_guard = local.match_found ? true : tobool(
-    "ERROR: override_statement_match was provided but no matching statement was found in ${var.override_policy_source}. The source managed policy may have changed from the expected baseline. Review the policy in the AWS console before re-running."
-  )
-
-  # ---------------------------------------------------------------------------
-  # Hard fail at plan time if the live policy version does not match the
-  # approved version. Uses default_version_id from the awscc provider which
-  # exposes the IAM version string (e.g. "v10") directly.
-  # Only evaluated when approved_policy_version is set — null skips the check
-  # entirely, preserving auto-inherit behavior.
-  # ---------------------------------------------------------------------------
-  version_gate = (
-    var.approved_policy_version == null ||
-    var.approved_policy_version == data.awscc_iam_managed_policy.source_meta.default_version_id
-  ) ? true : tobool(
-    "ERROR: ${var.override_policy_source} has been updated by AWS to version ${data.awscc_iam_managed_policy.source_meta.default_version_id}${try(" (${data.awscc_iam_managed_policy.source_meta.update_date})", "")}. Approved version is ${var.approved_policy_version}. Review the policy changes, confirm the override still meets governance requirements, then update approved_policy_version to ${data.awscc_iam_managed_policy.source_meta.default_version_id} to unblock the plan."
-  )
-
-  # ---------------------------------------------------------------------------
   # Reshape each source statement into a known structure for dynamic block use.
   # Handles:
   #   - Missing Sid (falls back to matched override SID or position index)
@@ -123,28 +86,33 @@ locals {
   statements_map = {
     for idx, s in local.statements : s.Sid => s
   }
+
+  duplicate_sids = length(local.statements) != length(keys(local.statements_map))
+
+  override_mode = (
+    var.override_statement_match != null ? "content_match" :
+    contains(keys(local.statements_map), var.override_policy_sid) ? "sid_match" :
+    "append"
+  )
+
+  matched_statement_sid = (
+    var.override_statement_match != null && local.matched_index >= 0 ? local.statements[local.matched_index].Sid :
+    contains(keys(local.statements_map), var.override_policy_sid) ? var.override_policy_sid :
+    null
+  )
 }
 
 # ---------------------------------------------------------------------------
 # Intermediate step: reconstruct the fetched managed policy in HCL so
 # Terraform can consume it as a source_policy_document. Required because
 # aws_iam_policy_document does not accept raw JSON as a source directly.
-#
-# match_guard and version_gate are referenced inside the content block so
-# Terraform evaluates them during planning — either will tobool-error before
-# any statements are rendered if their checks fail.
 # ---------------------------------------------------------------------------
 data "aws_iam_policy_document" "source_normalized" {
   dynamic "statement" {
     for_each = local.statements_map
 
     content {
-      # Referencing both guards inside content forces their evaluation.
-      # If either guard fires, tobool() errors the plan before apply.
-      sid = (local.match_guard == true && local.version_gate == true
-        ? statement.value["Sid"]
-        : statement.value["Sid"]
-      )
+      sid       = statement.value["Sid"]
       effect    = statement.value["Effect"]
       resources = statement.value["Resource"]
 

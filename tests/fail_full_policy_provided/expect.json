@@ -1,0 +1,6 @@
+{
+  "expect": "fail",
+  "error_contains": [
+    "A full policy document with a Statement array was provided instead"
+  ]
+}
